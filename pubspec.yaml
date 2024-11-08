@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_svg: ^2.0.14
+  graphql_flutter: ^5.1.2
 
 dev_dependencies:
   flutter_test:
