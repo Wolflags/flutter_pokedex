@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '/colors/type_color.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -81,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                               image: DecorationImage(
-                                image: AssetImage('assets/images/sample_pokemon.png'),
+                                image: AssetImage('assets/images/bulbasaur.png'),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -112,11 +114,74 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: Row(
                             children: [
-                              Icon(Icons.flash_on, color: Colors.yellow, size: 20),
+                              Container(
+                                height: 30,
+                                width: 30,
+                                decoration: BoxDecoration(
+                                  color: getTypeColor('electric'),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: getTypeColor('electric').withOpacity(0.5),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SvgPicture.asset(
+                                    'assets/icons/electric.svg',
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                               SizedBox(width: 4),
-                              Icon(Icons.water_drop, color: Colors.blue, size: 20),
+                              Container(
+                                height: 30,
+                                width: 30,
+                                decoration: BoxDecoration(
+                                  color: getTypeColor('water'),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: getTypeColor('water').withOpacity(0.5),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SvgPicture.asset(
+                                    'assets/icons/water.svg',
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                               SizedBox(width: 4),
-                              Icon(Icons.grass, color: Colors.green, size: 20),
+                              Container(
+                                height: 30,
+                                width: 30,
+                                decoration: BoxDecoration(
+                                  color: getTypeColor('grass'),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: getTypeColor('grass').withOpacity(0.5),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SvgPicture.asset(
+                                    'assets/icons/grass.svg',
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -137,4 +202,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
