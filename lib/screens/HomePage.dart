@@ -4,6 +4,7 @@ import '/colors/type_color.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
+import '/screens/pokemon_detail_page.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -100,7 +101,16 @@ class _HomePageState extends State<HomePage> {
 
     final imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
 
-    return Card(
+    return GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PokemonDetailPage(pokemonId: id),
+      ),
+    );
+  },
+  child: Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -174,7 +184,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
+    ),
+); 
   }
 },
 
