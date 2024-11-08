@@ -1,6 +1,10 @@
 const String fetchPokemonsQuery = r'''
-  query FetchPokemons($limit: Int!, $offset: Int!) {
-    pokemon_v2_pokemon(limit: $limit, offset: $offset) {
+  query FetchPokemons($limit: Int!, $offset: Int!, $where: pokemon_v2_pokemon_bool_exp) {
+    pokemon_v2_pokemon(
+      limit: $limit,
+      offset: $offset,
+      where: $where
+    ) {
       id
       name
       pokemon_v2_pokemontypes {
@@ -11,6 +15,7 @@ const String fetchPokemonsQuery = r'''
     }
   }
 ''';
+
 
 
 const String fetchPokemonDetailQuery = r'''
