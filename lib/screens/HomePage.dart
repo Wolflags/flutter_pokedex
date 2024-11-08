@@ -1,3 +1,4 @@
+// ignore: file_names
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '/colors/type_color.dart';
@@ -7,27 +8,43 @@ import '/queries/query.dart';
 import '/screens/pokemon_detail_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  List<dynamic> _pokemonList = [];
+  final List<dynamic> _pokemonList = [];
   bool _isLoading = false;
   bool _hasNextPage = true;
   bool _isFetching = false;
-  
 
   String _searchQuery = '';
   String? _selectedType;
   int? _selectedGeneration;
 
   final List<String> _types = [
-    'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison',
-    'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark',
-    'steel', 'fairy',
+    'normal',
+    'fire',
+    'water',
+    'electric',
+    'grass',
+    'ice',
+    'fighting',
+    'poison',
+    'ground',
+    'flying',
+    'psychic',
+    'bug',
+    'rock',
+    'ghost',
+    'dragon',
+    'dark',
+    'steel',
+    'fairy',
   ];
 
   final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -46,85 +63,84 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-void dispose() {
-  _scrollController.dispose();
-  _searchController.dispose();
-  super.dispose();
-}
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
 
   Future<void> _fetchMorePokemon({bool reset = false}) async {
-  if (_isFetching || !_hasNextPage) return;
+    if (_isFetching || !_hasNextPage) return;
 
-  setState(() {
-    _isLoading = true;
-    _isFetching = true;
-  });
-
-  if (reset) {
-    _pokemonList.clear();
-    _hasNextPage = true;
-  }
-
-  final GraphQLClient client = getGraphQLClient();
-
-
-  Map<String, dynamic> where = {};
-
-  if (_searchQuery.isNotEmpty) {
-    where['name'] = {'_ilike': '%$_searchQuery%'};
-  }
-
-  if (_selectedGeneration != null) {
-    where['pokemon_v2_pokemonspecy'] = {
-      'generation_id': {'_eq': _selectedGeneration}
-    };
-  }
-
-  // Filtro por tipo
-  if (_selectedType != null) {
-    where['pokemon_v2_pokemontypes'] = {
-      'pokemon_v2_type': {'name': {'_eq': _selectedType}}
-    };
-  }
-
-  final QueryOptions options = QueryOptions(
-    document: gql(fetchPokemonsQuery),
-    variables: {
-      'limit': 20,
-      'offset': _pokemonList.length,
-      'where': where,
-    },
-  );
-
-  final QueryResult result = await client.query(options);
-
-  if (result.hasException) {
-    print(result.exception.toString());
     setState(() {
+      _isLoading = true;
+      _isFetching = true;
+    });
+
+    if (reset) {
+      _pokemonList.clear();
+      _hasNextPage = true;
+    }
+
+    final GraphQLClient client = getGraphQLClient();
+
+    Map<String, dynamic> where = {};
+
+    if (_searchQuery.isNotEmpty) {
+      where['name'] = {'_ilike': '%$_searchQuery%'};
+    }
+
+    if (_selectedGeneration != null) {
+      where['pokemon_v2_pokemonspecy'] = {
+        'generation_id': {'_eq': _selectedGeneration}
+      };
+    }
+
+    // Filtro por tipo
+    if (_selectedType != null) {
+      where['pokemon_v2_pokemontypes'] = {
+        'pokemon_v2_type': {
+          'name': {'_eq': _selectedType}
+        }
+      };
+    }
+
+    final QueryOptions options = QueryOptions(
+      document: gql(fetchPokemonsQuery),
+      variables: {
+        'limit': 20,
+        'offset': _pokemonList.length,
+        'where': where,
+      },
+    );
+
+    final QueryResult result = await client.query(options);
+
+    if (result.hasException) {
+      setState(() {
+        _isLoading = false;
+        _isFetching = false;
+      });
+      return;
+    }
+
+    final List fetchedPokemons = result.data?['pokemon_v2_pokemon'];
+
+    setState(() {
+      _pokemonList.addAll(fetchedPokemons);
       _isLoading = false;
       _isFetching = false;
+      if (fetchedPokemons.length < 20) {
+        _hasNextPage = false;
+      }
     });
-    return;
   }
-
-  final List fetchedPokemons = result.data?['pokemon_v2_pokemon'];
-
-  setState(() {
-    _pokemonList.addAll(fetchedPokemons);
-    _isLoading = false;
-    _isFetching = false;
-    if (fetchedPokemons.length < 20) {
-      _hasNextPage = false;
-    }
-  });
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pokedex'),
+        title: const Text('Pokedex'),
         backgroundColor: Colors.red,
         centerTitle: true,
       ),
@@ -141,7 +157,7 @@ void dispose() {
               },
               decoration: InputDecoration(
                 hintText: 'Buscar Pokémon por nombre',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -152,7 +168,7 @@ void dispose() {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               DropdownButton<String>(
-                hint: Text('Tipo'),
+                hint: const Text('Tipo'),
                 value: _selectedType,
                 items: _types.map((String type) {
                   return DropdownMenuItem<String>(
@@ -169,7 +185,7 @@ void dispose() {
                 },
               ),
               DropdownButton<int>(
-                hint: Text('Generación'),
+                hint: const Text('Generación'),
                 value: _selectedGeneration,
                 items: _generations.map((int generation) {
                   return DropdownMenuItem<int>(
@@ -185,27 +201,26 @@ void dispose() {
                   _fetchMorePokemon(reset: true);
                 },
               ),
-IconButton(
-  icon: Icon(Icons.clear),
-  onPressed: () {
-    setState(() {
-      _selectedType = null;
-      _selectedGeneration = null;
-      _searchQuery = '';
-      _searchController.clear();
-      _hasNextPage = true;
-    });
-    _fetchMorePokemon(reset: true);
-  },
-),
-
+              IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  setState(() {
+                    _selectedType = null;
+                    _selectedGeneration = null;
+                    _searchQuery = '';
+                    _searchController.clear();
+                    _hasNextPage = true;
+                  });
+                  _fetchMorePokemon(reset: true);
+                },
+              ),
             ],
           ),
           Expanded(
             child: GridView.builder(
               controller: _scrollController,
-              padding: EdgeInsets.all(8.0),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              padding: const EdgeInsets.all(8.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
@@ -214,7 +229,7 @@ IconButton(
               itemCount: _pokemonList.length + (_isLoading ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _pokemonList.length && _isLoading) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (index < _pokemonList.length) {
                   final pokemon = _pokemonList[index];
                   final String name = pokemon['name'];
@@ -229,7 +244,8 @@ IconButton(
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PokemonDetailPage(pokemonId: id),
+                          builder: (context) =>
+                              PokemonDetailPage(pokemonId: id),
                         ),
                       );
                     },
@@ -243,8 +259,8 @@ IconButton(
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.vertical(top: Radius.circular(10)),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(10)),
                                 image: DecorationImage(
                                   image: NetworkImage(imageUrl),
                                   fit: BoxFit.cover,
@@ -259,14 +275,14 @@ IconButton(
                               children: [
                                 Text(
                                   name,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),
                                 ),
                                 Text(
                                   '#$id',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.grey,
                                   ),
                                 ),
@@ -278,7 +294,8 @@ IconButton(
                                 horizontal: 8.0, vertical: 4.0),
                             child: Row(
                               children: types.map<Widget>((typeInfo) {
-                                final typeName = typeInfo['pokemon_v2_type']['name'];
+                                final typeName =
+                                    typeInfo['pokemon_v2_type']['name'];
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 4.0),
                                   child: Container(
@@ -292,7 +309,7 @@ IconButton(
                                           color: getTypeColor(typeName)
                                               .withOpacity(0.5),
                                           blurRadius: 10,
-                                          offset: Offset(0, 5),
+                                          offset: const Offset(0, 5),
                                         ),
                                       ],
                                     ),
@@ -300,7 +317,10 @@ IconButton(
                                       padding: const EdgeInsets.all(4.0),
                                       child: SvgPicture.asset(
                                         'assets/icons/$typeName.svg',
-                                        color: Colors.white,
+                                        colorFilter: const ColorFilter.mode(
+                                          Colors.white,
+                                          BlendMode.srcIn,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -313,14 +333,14 @@ IconButton(
                     ),
                   );
                 } else {
-                  return SizedBox();
+                  return const SizedBox();
                 }
               },
             ),
           ),
           if (_isLoading)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
               child: CircularProgressIndicator(),
             ),
         ],
