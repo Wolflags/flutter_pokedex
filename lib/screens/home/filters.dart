@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 
-class Filters extends StatelessWidget {
-  final TextEditingController searchController;
-  final Function(String) onSearchChanged;
-  final String? selectedType;
-  final Function(String?) onTypeChanged;
-  final int? selectedGeneration;
-  final Function(int?) onGenerationChanged;
-  final Function onClearFilters;
+class Filters extends StatefulWidget {
+  final Function(String, String?, int?) onFiltersChanged;
+
+  const Filters({super.key, required this.onFiltersChanged});
+
+  @override
+  _FiltersState createState() => _FiltersState();
+}
+
+class _FiltersState extends State<Filters> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String? _selectedType;
+  int? _selectedGeneration;
+
   static const List<String> types = [
     'normal',
     'fire',
@@ -30,16 +37,36 @@ class Filters extends StatelessWidget {
   ];
   static const List<int> generations = [1, 2, 3, 4, 5, 6, 7, 8];
 
-  const Filters({
-    super.key,
-    required this.searchController,
-    required this.onSearchChanged,
-    required this.selectedType,
-    required this.onTypeChanged,
-    required this.selectedGeneration,
-    required this.onGenerationChanged,
-    required this.onClearFilters,
-  });
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value.toLowerCase();
+    });
+    widget.onFiltersChanged(_searchQuery, _selectedType, _selectedGeneration);
+  }
+
+  void _onTypeChanged(String? newValue) {
+    setState(() {
+      _selectedType = newValue;
+    });
+    widget.onFiltersChanged(_searchQuery, _selectedType, _selectedGeneration);
+  }
+
+  void _onGenerationChanged(int? newValue) {
+    setState(() {
+      _selectedGeneration = newValue;
+    });
+    widget.onFiltersChanged(_searchQuery, _selectedType, _selectedGeneration);
+  }
+
+  void _onClearFilters() {
+    setState(() {
+      _searchQuery = '';
+      _selectedType = null;
+      _selectedGeneration = null;
+      _searchController.clear();
+    });
+    widget.onFiltersChanged(_searchQuery, _selectedType, _selectedGeneration);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +75,8 @@ class Filters extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
-            controller: searchController,
-            onChanged: onSearchChanged,
+            controller: _searchController,
+            onChanged: _onSearchChanged,
             decoration: InputDecoration(
               hintText: 'Buscar Pokémon por nombre',
               prefixIcon: const Icon(Icons.search),
@@ -64,31 +91,29 @@ class Filters extends StatelessWidget {
           children: [
             DropdownButton<String>(
               hint: const Text('Tipo'),
-              value: selectedType,
+              value: _selectedType,
               items: types.map((String type) {
                 return DropdownMenuItem<String>(
                   value: type,
                   child: Text(type.toUpperCase()),
                 );
               }).toList(),
-              onChanged: onTypeChanged,
+              onChanged: _onTypeChanged,
             ),
             DropdownButton<int>(
               hint: const Text('Generación'),
-              value: selectedGeneration,
+              value: _selectedGeneration,
               items: generations.map((int generation) {
                 return DropdownMenuItem<int>(
                   value: generation,
                   child: Text('Gen $generation'),
                 );
               }).toList(),
-              onChanged: onGenerationChanged,
+              onChanged: _onGenerationChanged,
             ),
             IconButton(
               icon: const Icon(Icons.clear),
-              onPressed: () {
-                onClearFilters();
-              },
+              onPressed: _onClearFilters,
             ),
           ],
         ),

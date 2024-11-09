@@ -1,5 +1,6 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
+import 'package:flutter_pokedex/screens/home/buildTypes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '/colors/type_color.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -24,6 +25,9 @@ class HomePageState extends State<HomePage> {
 
   final GraphQLClient client = getGraphQLClient();
   Map<String, dynamic> where = {};
+
+  
+
 
   @override
   void initState() {
@@ -172,7 +176,7 @@ class HomePageState extends State<HomePage> {
                                     top: Radius.circular(10)),
                                 image: DecorationImage(
                                   image: NetworkImage(imageUrl),
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.fitHeight,
                                 ),
                               ),
                             ),
@@ -186,13 +190,15 @@ class HomePageState extends State<HomePage> {
                                   name,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: 20,
+                                    
                                   ),
                                 ),
                                 Text(
                                   '#$id',
                                   style: const TextStyle(
                                     color: Colors.grey,
+                                    fontSize: 16,
                                   ),
                                 ),
                               ],
@@ -202,39 +208,9 @@ class HomePageState extends State<HomePage> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8.0, vertical: 4.0),
                             child: Row(
-                              children: types.map<Widget>((typeInfo) {
-                                final typeName =
-                                    typeInfo['pokemon_v2_type']['name'];
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 4.0),
-                                  child: Container(
-                                    height: 30,
-                                    width: 30,
-                                    decoration: BoxDecoration(
-                                      color: getTypeColor(typeName),
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: getTypeColor(typeName)
-                                              .withOpacity(0.5),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 5),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: SvgPicture.asset(
-                                        'assets/icons/$typeName.svg',
-                                        colorFilter: const ColorFilter.mode(
-                                          Colors.white,
-                                          BlendMode.srcIn,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                              children: types.map<Widget>((typeInfo){
+                                return buildTypeWidget(typeInfo as Map<String, dynamic>);
+                                }).toList(),
                             ),
                           ),
                         ],
