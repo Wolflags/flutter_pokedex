@@ -6,6 +6,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
 import '/screens/pokemon_detail_page.dart';
+import '/screens/home/filters.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,38 +17,13 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _searchController = TextEditingController();
   final List<dynamic> _pokemonList = [];
   bool _isLoading = false;
   bool _hasNextPage = true;
   bool _isFetching = false;
 
-  String _searchQuery = '';
-  String? _selectedType;
-  int? _selectedGeneration;
-
-  final List<String> _types = [
-    'normal',
-    'fire',
-    'water',
-    'electric',
-    'grass',
-    'ice',
-    'fighting',
-    'poison',
-    'ground',
-    'flying',
-    'psychic',
-    'bug',
-    'rock',
-    'ghost',
-    'dragon',
-    'dark',
-    'steel',
-    'fairy',
-  ];
-
-  final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8];
+  final GraphQLClient client = getGraphQLClient();
+  Map<String, dynamic> where = {};
 
   @override
   void initState() {
@@ -65,10 +41,10 @@ class HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
+  //Obtener pokemons
   Future<void> _fetchMorePokemon({bool reset = false}) async {
     if (_isFetching || !_hasNextPage) return;
 
@@ -80,29 +56,6 @@ class HomePageState extends State<HomePage> {
     if (reset) {
       _pokemonList.clear();
       _hasNextPage = true;
-    }
-
-    final GraphQLClient client = getGraphQLClient();
-
-    Map<String, dynamic> where = {};
-
-    if (_searchQuery.isNotEmpty) {
-      where['name'] = {'_ilike': '%$_searchQuery%'};
-    }
-
-    if (_selectedGeneration != null) {
-      where['pokemon_v2_pokemonspecy'] = {
-        'generation_id': {'_eq': _selectedGeneration}
-      };
-    }
-
-    // Filtro por tipo
-    if (_selectedType != null) {
-      where['pokemon_v2_pokemontypes'] = {
-        'pokemon_v2_type': {
-          'name': {'_eq': _selectedType}
-        }
-      };
     }
 
     final QueryOptions options = QueryOptions(
@@ -136,6 +89,29 @@ class HomePageState extends State<HomePage> {
     });
   }
 
+  //Manejo de filtros para pasar a la clase filters
+  void _onFiltersChanged(String searchQuery, String? selectedType, int? selectedGeneration) {
+    setState(() {
+      where = {};
+      if (searchQuery.isNotEmpty) {
+        where['name'] = {'_ilike': '%$searchQuery%'};
+      }
+      if (selectedGeneration != null) {
+        where['pokemon_v2_pokemonspecy'] = {
+          'generation_id': {'_eq': selectedGeneration}
+        };
+      }
+      if (selectedType != null) {
+        where['pokemon_v2_pokemontypes'] = {
+          'pokemon_v2_type': {
+            'name': {'_eq': selectedType}
+          }
+        };
+      }
+      _fetchMorePokemon(reset: true);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,75 +122,8 @@ class HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                _searchQuery = value.toLowerCase();
-                _hasNextPage = true;
-                _fetchMorePokemon(reset: true);
-              },
-              decoration: InputDecoration(
-                hintText: 'Buscar Pokémon por nombre',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              DropdownButton<String>(
-                hint: const Text('Tipo'),
-                value: _selectedType,
-                items: _types.map((String type) {
-                  return DropdownMenuItem<String>(
-                    value: type,
-                    child: Text(type.toUpperCase()),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedType = newValue;
-                    _hasNextPage = true;
-                  });
-                  _fetchMorePokemon(reset: true);
-                },
-              ),
-              DropdownButton<int>(
-                hint: const Text('Generación'),
-                value: _selectedGeneration,
-                items: _generations.map((int generation) {
-                  return DropdownMenuItem<int>(
-                    value: generation,
-                    child: Text('Gen $generation'),
-                  );
-                }).toList(),
-                onChanged: (int? newValue) {
-                  setState(() {
-                    _selectedGeneration = newValue;
-                    _hasNextPage = true;
-                  });
-                  _fetchMorePokemon(reset: true);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  setState(() {
-                    _selectedType = null;
-                    _selectedGeneration = null;
-                    _searchQuery = '';
-                    _searchController.clear();
-                    _hasNextPage = true;
-                  });
-                  _fetchMorePokemon(reset: true);
-                },
-              ),
-            ],
+          Filters(
+            onFiltersChanged: _onFiltersChanged,
           ),
           Expanded(
             child: GridView.builder(
