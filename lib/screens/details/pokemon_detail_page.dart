@@ -126,7 +126,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
                         'Estadísticas',
@@ -159,7 +159,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
                         'Habilidades',
@@ -190,7 +190,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           'Evoluciones',
@@ -216,7 +216,9 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                     ),
                                   );
                                 },
-                                child: Column(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 8.0, left: 8.0),
+                                  child: Column(
                                   children: [
                                     Image.network(
                                       evolutionImageUrl,
@@ -230,6 +232,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                     ),
                                   ],
                                 ),
+                                ),
                               );
                             }).toList(),
                           ),
@@ -241,7 +244,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
                         'Movimientos',

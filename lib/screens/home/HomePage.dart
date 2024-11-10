@@ -1,12 +1,10 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
 import 'package:flutter_pokedex/screens/home/buildTypes.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import '/colors/type_color.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
-import '/screens/pokemon_detail_page.dart';
+import '../details/pokemon_detail_page.dart';
 import '/screens/home/filters.dart';
 
 class HomePage extends StatefulWidget {
@@ -49,19 +47,19 @@ class HomePageState extends State<HomePage> {
   }
 
   //Obtener pokemons
-  Future<void> _fetchMorePokemon({bool reset = false}) async {
+    Future<void> _fetchMorePokemon({bool reset = false}) async {
     if (_isFetching || !_hasNextPage) return;
-
+  
     setState(() {
       _isLoading = true;
       _isFetching = true;
     });
-
+  
     if (reset) {
       _pokemonList.clear();
       _hasNextPage = true;
     }
-
+  
     final QueryOptions options = QueryOptions(
       document: gql(fetchPokemonsQuery),
       variables: {
@@ -70,9 +68,9 @@ class HomePageState extends State<HomePage> {
         'where': where,
       },
     );
-
+  
     final QueryResult result = await client.query(options);
-
+  
     if (result.hasException) {
       setState(() {
         _isLoading = false;
@@ -80,9 +78,9 @@ class HomePageState extends State<HomePage> {
       });
       return;
     }
-
-    final List fetchedPokemons = result.data?['pokemon_v2_pokemon'];
-
+  
+    final List fetchedPokemons = result.data?['pokemon_v2_pokemon'] ?? [];
+  
     setState(() {
       _pokemonList.addAll(fetchedPokemons);
       _isLoading = false;
@@ -94,7 +92,7 @@ class HomePageState extends State<HomePage> {
   }
 
   //Manejo de filtros para pasar a la clase filters
-  void _onFiltersChanged(String searchQuery, String? selectedType, int? selectedGeneration) {
+    void _onFiltersChanged(String searchQuery, String? selectedType, int? selectedGeneration) {
     setState(() {
       where = {};
       if (searchQuery.isNotEmpty) {
@@ -187,7 +185,7 @@ class HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  name,
+                                  '${name[0].toUpperCase()}${name.substring(1)}',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 20,
