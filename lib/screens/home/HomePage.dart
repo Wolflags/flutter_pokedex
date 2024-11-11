@@ -5,7 +5,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
 import '../details/pokemon_detail_page.dart';
-import '/screens/home/filters.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +19,21 @@ class HomePageState extends State<HomePage> {
   bool _isLoading = false;
   bool _hasNextPage = true;
   bool _isFetching = false;
+
+
+
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String? _selectedType;
+  int? _selectedGeneration;
+  final List<String> _types = [
+    'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison',
+    'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark',
+    'steel', 'fairy',
+  ];
+  final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8];
+
+
 
   final GraphQLClient client = getGraphQLClient();
   Map<String, dynamic> where = {};
@@ -59,6 +73,25 @@ class HomePageState extends State<HomePage> {
       _pokemonList.clear();
       _hasNextPage = true;
     }
+
+    Map<String, dynamic> where = {};
+
+  if (_searchQuery.isNotEmpty) {
+    where['name'] = {'_ilike': '%$_searchQuery%'};
+  }
+
+  if (_selectedGeneration != null) {
+    where['pokemon_v2_pokemonspecy'] = {
+      'generation_id': {'_eq': _selectedGeneration}
+    };
+  }
+
+  // Filtro por tipo
+  if (_selectedType != null) {
+    where['pokemon_v2_pokemontypes'] = {
+      'pokemon_v2_type': {'name': {'_eq': _selectedType}}
+    };
+  }
   
     final QueryOptions options = QueryOptions(
       document: gql(fetchPokemonsQuery),
@@ -124,8 +157,76 @@ class HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          Filters(
-            onFiltersChanged: _onFiltersChanged,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                _searchQuery = value.toLowerCase();
+                _hasNextPage = true;
+                _fetchMorePokemon(reset: true);
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar Pokémon por nombre',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              DropdownButton<String>(
+                hint: Text('Tipo'),
+                value: _selectedType,
+                items: _types.map((String type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedType = newValue;
+                    _hasNextPage = true;
+                  });
+                  _fetchMorePokemon(reset: true);
+                },
+              ),
+              DropdownButton<int>(
+                hint: Text('Generación'),
+                value: _selectedGeneration,
+                items: _generations.map((int generation) {
+                  return DropdownMenuItem<int>(
+                    value: generation,
+                    child: Text('Gen $generation'),
+                  );
+                }).toList(),
+                onChanged: (int? newValue) {
+                  setState(() {
+                    _selectedGeneration = newValue;
+                    _hasNextPage = true;
+                  });
+                  _fetchMorePokemon(reset: true);
+                },
+              ),
+IconButton(
+  icon: Icon(Icons.clear),
+  onPressed: () {
+    setState(() {
+      _selectedType = null;
+      _selectedGeneration = null;
+      _searchQuery = '';
+      _searchController.clear();
+      _hasNextPage = true;
+    });
+    _fetchMorePokemon(reset: true);
+  },
+),
+
+            ],
           ),
           Expanded(
             child: GridView.builder(
