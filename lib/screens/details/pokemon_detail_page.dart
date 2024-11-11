@@ -47,9 +47,24 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles del Pokémon'),
+        title: const Text('Detalles del Pokémon',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+            color: Colors.white,
+          ),),
         backgroundColor: Colors.red,
         centerTitle: true,
+        leading: IconButton(
+    icon: const Icon(
+      Icons.arrow_back,
+      color: Colors.white,
+    
+    ),
+    onPressed: () {
+      Navigator.pop(context);
+    },
+  ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _pokemonData,

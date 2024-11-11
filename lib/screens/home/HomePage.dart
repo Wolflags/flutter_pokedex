@@ -20,26 +20,34 @@ class HomePageState extends State<HomePage> {
   bool _hasNextPage = true;
   bool _isFetching = false;
 
-
-
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String? _selectedType;
   int? _selectedGeneration;
   final List<String> _types = [
-    'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison',
-    'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark',
-    'steel', 'fairy',
+    'normal',
+    'fire',
+    'water',
+    'electric',
+    'grass',
+    'ice',
+    'fighting',
+    'poison',
+    'ground',
+    'flying',
+    'psychic',
+    'bug',
+    'rock',
+    'ghost',
+    'dragon',
+    'dark',
+    'steel',
+    'fairy',
   ];
   final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8];
 
-
-
   final GraphQLClient client = getGraphQLClient();
   Map<String, dynamic> where = {};
-
-  
-
 
   @override
   void initState() {
@@ -61,14 +69,14 @@ class HomePageState extends State<HomePage> {
   }
 
   //Obtener pokemons
-    Future<void> _fetchMorePokemon({bool reset = false}) async {
+  Future<void> _fetchMorePokemon({bool reset = false}) async {
     if (_isFetching || !_hasNextPage) return;
-  
+
     setState(() {
       _isLoading = true;
       _isFetching = true;
     });
-  
+
     if (reset) {
       _pokemonList.clear();
       _hasNextPage = true;
@@ -76,23 +84,25 @@ class HomePageState extends State<HomePage> {
 
     Map<String, dynamic> where = {};
 
-  if (_searchQuery.isNotEmpty) {
-    where['name'] = {'_ilike': '%$_searchQuery%'};
-  }
+    if (_searchQuery.isNotEmpty) {
+      where['name'] = {'_ilike': '%$_searchQuery%'};
+    }
 
-  if (_selectedGeneration != null) {
-    where['pokemon_v2_pokemonspecy'] = {
-      'generation_id': {'_eq': _selectedGeneration}
-    };
-  }
+    if (_selectedGeneration != null) {
+      where['pokemon_v2_pokemonspecy'] = {
+        'generation_id': {'_eq': _selectedGeneration}
+      };
+    }
 
-  // Filtro por tipo
-  if (_selectedType != null) {
-    where['pokemon_v2_pokemontypes'] = {
-      'pokemon_v2_type': {'name': {'_eq': _selectedType}}
-    };
-  }
-  
+    // Filtro por tipo
+    if (_selectedType != null) {
+      where['pokemon_v2_pokemontypes'] = {
+        'pokemon_v2_type': {
+          'name': {'_eq': _selectedType}
+        }
+      };
+    }
+
     final QueryOptions options = QueryOptions(
       document: gql(fetchPokemonsQuery),
       variables: {
@@ -101,9 +111,9 @@ class HomePageState extends State<HomePage> {
         'where': where,
       },
     );
-  
+
     final QueryResult result = await client.query(options);
-  
+
     if (result.hasException) {
       setState(() {
         _isLoading = false;
@@ -111,9 +121,9 @@ class HomePageState extends State<HomePage> {
       });
       return;
     }
-  
+
     final List fetchedPokemons = result.data?['pokemon_v2_pokemon'] ?? [];
-  
+
     setState(() {
       _pokemonList.addAll(fetchedPokemons);
       _isLoading = false;
@@ -125,7 +135,8 @@ class HomePageState extends State<HomePage> {
   }
 
   //Manejo de filtros para pasar a la clase filters
-    void _onFiltersChanged(String searchQuery, String? selectedType, int? selectedGeneration) {
+  void _onFiltersChanged(
+      String searchQuery, String? selectedType, int? selectedGeneration) {
     setState(() {
       where = {};
       if (searchQuery.isNotEmpty) {
@@ -151,7 +162,16 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pokedex'),
+        title: const Text(
+          'Pokedéx',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 30,
+            color: Colors.white,
+            fontFamily: 'PokemonSolid',
+            letterSpacing: 3.0,
+          ),
+        ),
         backgroundColor: Colors.red,
         centerTitle: true,
       ),
@@ -212,20 +232,19 @@ class HomePageState extends State<HomePage> {
                   _fetchMorePokemon(reset: true);
                 },
               ),
-IconButton(
-  icon: Icon(Icons.clear),
-  onPressed: () {
-    setState(() {
-      _selectedType = null;
-      _selectedGeneration = null;
-      _searchQuery = '';
-      _searchController.clear();
-      _hasNextPage = true;
-    });
-    _fetchMorePokemon(reset: true);
-  },
-),
-
+              IconButton(
+                icon: Icon(Icons.clear),
+                onPressed: () {
+                  setState(() {
+                    _selectedType = null;
+                    _selectedGeneration = null;
+                    _searchQuery = '';
+                    _searchController.clear();
+                    _hasNextPage = true;
+                  });
+                  _fetchMorePokemon(reset: true);
+                },
+              ),
             ],
           ),
           Expanded(
@@ -290,7 +309,6 @@ IconButton(
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 20,
-                                    
                                   ),
                                 ),
                                 Text(
@@ -307,9 +325,10 @@ IconButton(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8.0, vertical: 4.0),
                             child: Row(
-                              children: types.map<Widget>((typeInfo){
-                                return buildTypeWidget(typeInfo as Map<String, dynamic>);
-                                }).toList(),
+                              children: types.map<Widget>((typeInfo) {
+                                return buildTypeWidget(
+                                    typeInfo as Map<String, dynamic>);
+                              }).toList(),
                             ),
                           ),
                         ],
