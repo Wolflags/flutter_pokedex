@@ -44,7 +44,7 @@ class HomePageState extends State<HomePage> {
     'steel',
     'fairy',
   ];
-  final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8];
+  final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8,9];
 
   final GraphQLClient client = getGraphQLClient();
   Map<String, dynamic> where = {};
@@ -84,6 +84,8 @@ class HomePageState extends State<HomePage> {
 
     Map<String, dynamic> where = {};
 
+    where['pokemon_v2_pokemonforms'] = {'is_default': {'_eq': true}};
+
     if (_searchQuery.isNotEmpty) {
       where['name'] = {'_ilike': '%$_searchQuery%'};
     }
@@ -122,7 +124,8 @@ class HomePageState extends State<HomePage> {
       return;
     }
 
-    final List fetchedPokemons = result.data?['pokemon_v2_pokemon'] ?? [];
+    final List fetchedPokemons = result.data?['pokemon_v2_pokemon'];
+
 
     setState(() {
       _pokemonList.addAll(fetchedPokemons);
@@ -139,6 +142,7 @@ class HomePageState extends State<HomePage> {
       String searchQuery, String? selectedType, int? selectedGeneration) {
     setState(() {
       where = {};
+      where['pokemon_v2_pokemonforms'] = {'is_default': {'_eq': true}};
       if (searchQuery.isNotEmpty) {
         where['name'] = {'_ilike': '%$searchQuery%'};
       }
@@ -164,7 +168,7 @@ class HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text(
           'Pokedéx',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 30,
             color: Colors.white,
@@ -188,7 +192,7 @@ class HomePageState extends State<HomePage> {
               },
               decoration: InputDecoration(
                 hintText: 'Buscar Pokémon por nombre',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -199,7 +203,7 @@ class HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               DropdownButton<String>(
-                hint: Text('Tipo'),
+                hint: const Text('Tipo'),
                 value: _selectedType,
                 items: _types.map((String type) {
                   return DropdownMenuItem<String>(
@@ -216,7 +220,7 @@ class HomePageState extends State<HomePage> {
                 },
               ),
               DropdownButton<int>(
-                hint: Text('Generación'),
+                hint: const Text('Generación'),
                 value: _selectedGeneration,
                 items: _generations.map((int generation) {
                   return DropdownMenuItem<int>(
@@ -233,7 +237,7 @@ class HomePageState extends State<HomePage> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.clear),
+                icon: const Icon(Icons.clear),
                 onPressed: () {
                   setState(() {
                     _selectedType = null;
@@ -267,7 +271,7 @@ class HomePageState extends State<HomePage> {
                   final int id = pokemon['id'];
                   final types = pokemon['pokemon_v2_pokemontypes'];
 
-                  final imageUrl =
+                  var imageUrl =
                       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
 
                   return GestureDetector(
