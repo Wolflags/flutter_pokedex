@@ -137,30 +137,6 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  //Manejo de filtros para pasar a la clase filters
-  void _onFiltersChanged(
-      String searchQuery, String? selectedType, int? selectedGeneration) {
-    setState(() {
-      where = {};
-      where['pokemon_v2_pokemonforms'] = {'is_default': {'_eq': true}};
-      if (searchQuery.isNotEmpty) {
-        where['name'] = {'_ilike': '%$searchQuery%'};
-      }
-      if (selectedGeneration != null) {
-        where['pokemon_v2_pokemonspecy'] = {
-          'generation_id': {'_eq': selectedGeneration}
-        };
-      }
-      if (selectedType != null) {
-        where['pokemon_v2_pokemontypes'] = {
-          'pokemon_v2_type': {
-            'name': {'_eq': selectedType}
-          }
-        };
-      }
-      _fetchMorePokemon(reset: true);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
