@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
 import '/colors/type_color.dart';
@@ -15,6 +16,7 @@ class PokemonDetailPage extends StatefulWidget {
 
 class PokemonDetailPageState extends State<PokemonDetailPage> {
   late Future<Map<String, dynamic>> _pokemonData;
+  bool _isFavorited = false;
 
   @override
   void initState() {
@@ -41,6 +43,35 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
     final pokemon = result.data?['pokemon_v2_pokemon_by_pk'];
 
     return pokemon;
+  }
+
+  void _navigateToNextPokemon() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PokemonDetailPage(pokemonId: widget.pokemonId + 1),
+      ),
+    );
+  }
+
+  void _navigateToPreviousPokemon() {
+    if (widget.pokemonId > 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              PokemonDetailPage(pokemonId: widget.pokemonId - 1),
+        ),
+      );
+    }
+  }
+
+  void _addToFavorites() {
+    setState(() {
+      _isFavorited = !_isFavorited;
+    });
+
+    
   }
 
   @override
@@ -260,38 +291,57 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Movimientos',
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: moves.length,
-                        itemBuilder: (context, index) {
-                          final move = moves[index]['pokemon_v2_move'];
-                          final moveName = move['name'];
-                          final movePower = move['power'] ?? 'N/A';
-                          // final movePp = move['pp'];
-                          final moveAccuracy = move['accuracy'] ?? 'N/A';
-                          final moveType = move['pokemon_v2_type']['name'];
+                    // children: [
+                    //   const Text(
+                    //     'Movimientos',
+                    //     style: TextStyle(
+                    //         fontSize: 24, fontWeight: FontWeight.bold),
+                    //   ),
+                    //   const SizedBox(height: 8),
+                    //   ListView.builder(
+                    //     shrinkWrap: true,
+                    //     physics: const NeverScrollableScrollPhysics(),
+                    //     itemCount: moves.length,
+                    //     itemBuilder: (context, index) {
+                    //       final move = moves[index]['pokemon_v2_move'];
+                    //       final moveName = move['name'];
+                    //       final movePower = move['power'] ?? 'N/A';
+                    //       // final movePp = move['pp'];
+                    //       final moveAccuracy = move['accuracy'] ?? 'N/A';
+                    //       final moveType = move['pokemon_v2_type']['name'];
 
-                          return ListTile(
-                            title: Text(moveName),
-                            subtitle: Text(
-                                'Tipo: $moveType, Poder: $movePower, Precisión: $moveAccuracy'),
-                          );
-                        },
-                      ),
-                    ],
+                    //       return ListTile(
+                    //         title: Text(moveName),
+                    //         subtitle: Text(
+                    //             'Tipo: $moveType, Poder: $movePower, Precisión: $moveAccuracy'),
+                    //       );
+                    //     },
+                    //   ),
+                    // ],
                   ),
                 ),
               ],
             ),
           );
+        },
+      ),
+      bottomNavigationBar: ConvexAppBar(
+        style: TabStyle.reactCircle,
+        backgroundColor: Colors.red,
+        items: [
+          TabItem(icon: Icons.arrow_back, title: 'Previous'),
+          TabItem(icon: _isFavorited ? Icons.favorite : Icons.favorite_border, title: 'Favorite'),
+          TabItem(icon: Icons.arrow_forward, title: 'Next'),
+        ],
+        initialActiveIndex: 1,
+        onTap: (int index) {
+          if (index == 0) {
+            _navigateToPreviousPokemon();
+          } else if (index == 1) {
+            _addToFavorites();
+          } else if (index == 2) {
+            _navigateToNextPokemon();
+          }
         },
       ),
     );

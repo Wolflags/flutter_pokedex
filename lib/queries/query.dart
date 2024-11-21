@@ -1,9 +1,10 @@
 const String fetchPokemonsQuery = r'''
-  query FetchPokemons($limit: Int!, $offset: Int!, $where: pokemon_v2_pokemon_bool_exp) {
+  query FetchPokemons($limit: Int!, $offset: Int!, $where: pokemon_v2_pokemon_bool_exp, $order_by: [pokemon_v2_pokemon_order_by!]) {
     pokemon_v2_pokemon(
       limit: $limit,
       offset: $offset,
-      where: $where
+      where: $where,
+      order_by: $order_by
     ) {
       id
       name

@@ -5,6 +5,9 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
 import '../details/pokemon_detail_page.dart';
+import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'filter_section.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,11 +22,13 @@ class HomePageState extends State<HomePage> {
   bool _isLoading = false;
   bool _hasNextPage = true;
   bool _isFetching = false;
+  int _selectedIndex = 0;
+  String _currentSorting = 'id'; // New variable to track sorting
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String? _selectedType;
-  int? _selectedGeneration;
+  List<String> _selectedTypes = [];
+  List<int> _selectedGenerations = [];
   final List<String> _types = [
     'normal',
     'fire',
@@ -44,7 +49,7 @@ class HomePageState extends State<HomePage> {
     'steel',
     'fairy',
   ];
-  final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8,9];
+  final List<int> _generations = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   final GraphQLClient client = getGraphQLClient();
   Map<String, dynamic> where = {};
@@ -90,17 +95,16 @@ class HomePageState extends State<HomePage> {
       where['name'] = {'_ilike': '%$_searchQuery%'};
     }
 
-    if (_selectedGeneration != null) {
+    if (_selectedGenerations.isNotEmpty) {
       where['pokemon_v2_pokemonspecy'] = {
-        'generation_id': {'_eq': _selectedGeneration}
+        'generation_id': {'_in': _selectedGenerations}
       };
     }
 
-    // Filtro por tipo
-    if (_selectedType != null) {
+    if (_selectedTypes.isNotEmpty) {
       where['pokemon_v2_pokemontypes'] = {
         'pokemon_v2_type': {
-          'name': {'_eq': _selectedType}
+          'name': {'_in': _selectedTypes}
         }
       };
     }
@@ -111,6 +115,9 @@ class HomePageState extends State<HomePage> {
         'limit': 20,
         'offset': _pokemonList.length,
         'where': where,
+        'order_by': [
+          {_currentSorting: 'asc'} // Updated to use current sorting
+        ],
       },
     );
 
@@ -126,7 +133,6 @@ class HomePageState extends State<HomePage> {
 
     final List fetchedPokemons = result.data?['pokemon_v2_pokemon'];
 
-
     setState(() {
       _pokemonList.addAll(fetchedPokemons);
       _isLoading = false;
@@ -137,6 +143,57 @@ class HomePageState extends State<HomePage> {
     });
   }
 
+  void _toggleType(String type) {
+    setState(() {
+      if (_selectedTypes.contains(type)) {
+        _selectedTypes.remove(type);
+      } else {
+        _selectedTypes.add(type);
+      }
+      _hasNextPage = true;
+    });
+    _fetchMorePokemon(reset: true);
+  }
+
+  void _toggleGeneration(int generation) {
+    setState(() {
+      if (_selectedGenerations.contains(generation)) {
+        _selectedGenerations.remove(generation);
+      } else {
+        _selectedGenerations.add(generation);
+      }
+      _hasNextPage = true;
+    });
+    _fetchMorePokemon(reset: true);
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _selectedTypes = [];
+      _selectedGenerations = [];
+      _searchQuery = '';
+      _searchController.clear();
+      _hasNextPage = true;
+    });
+    _fetchMorePokemon(reset: true);
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _hasNextPage = true;
+      _pokemonList.clear();
+      _fetchMorePokemon(reset: true);
+    });
+  }
+
+  void _changeSorting(String sorting) {
+    setState(() {
+      _currentSorting = sorting;
+      _hasNextPage = true;
+    });
+    _fetchMorePokemon(reset: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,177 +212,164 @@ class HomePageState extends State<HomePage> {
         backgroundColor: Colors.red,
         centerTitle: true,
       ),
-      body: Column(
+      body: IndexedStack(
+        index: _selectedIndex,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                _searchQuery = value.toLowerCase();
-                _hasNextPage = true;
-                _fetchMorePokemon(reset: true);
-              },
-              decoration: InputDecoration(
-                hintText: 'Buscar Pokémon por nombre',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          Column(
             children: [
-              DropdownButton<String>(
-                hint: const Text('Tipo'),
-                value: _selectedType,
-                items: _types.map((String type) {
-                  return DropdownMenuItem<String>(
-                    value: type,
-                    child: Text(type.toUpperCase()),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedType = newValue;
-                    _hasNextPage = true;
-                  });
+              FilterSection(
+                searchController: _searchController,
+                onSearchChanged: (value) {
+                  _searchQuery = value.toLowerCase();
+                  _hasNextPage = true;
                   _fetchMorePokemon(reset: true);
                 },
+                selectedTypes: _selectedTypes,
+                selectedGenerations: _selectedGenerations,
+                onTypeToggle: _toggleType,
+                onGenerationToggle: _toggleGeneration,
+                onClearFilters: _clearFilters,
+                types: _types,
+                generations: _generations,
               ),
-              DropdownButton<int>(
-                hint: const Text('Generación'),
-                value: _selectedGeneration,
-                items: _generations.map((int generation) {
-                  return DropdownMenuItem<int>(
-                    value: generation,
-                    child: Text('Gen $generation'),
-                  );
-                }).toList(),
-                onChanged: (int? newValue) {
-                  setState(() {
-                    _selectedGeneration = newValue;
-                    _hasNextPage = true;
-                  });
-                  _fetchMorePokemon(reset: true);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  setState(() {
-                    _selectedType = null;
-                    _selectedGeneration = null;
-                    _searchQuery = '';
-                    _searchController.clear();
-                    _hasNextPage = true;
-                  });
-                  _fetchMorePokemon(reset: true);
-                },
-              ),
-            ],
-          ),
-          Expanded(
-            child: GridView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(8.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.75,
-              ),
-              itemCount: _pokemonList.length + (_isLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _pokemonList.length && _isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (index < _pokemonList.length) {
-                  final pokemon = _pokemonList[index];
-                  final String name = pokemon['name'];
-                  final int id = pokemon['id'];
-                  final types = pokemon['pokemon_v2_pokemontypes'];
+              Expanded(
+                child: GridView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(8.0),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemCount: _pokemonList.length + (_isLoading ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == _pokemonList.length && _isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (index < _pokemonList.length) {
+                      final pokemon = _pokemonList[index];
+                      final String name = pokemon['name'];
+                      final int id = pokemon['id'];
+                      final types = pokemon['pokemon_v2_pokemontypes'];
 
-                  var imageUrl =
-                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
+                      var imageUrl =
+                          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
 
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PokemonDetailPage(pokemonId: id),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(10)),
-                                image: DecorationImage(
-                                  image: NetworkImage(imageUrl),
-                                  fit: BoxFit.fitHeight,
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  PokemonDetailPage(pokemonId: id),
+                            ),
+                          );
+                        },
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(10)),
+                                    image: DecorationImage(
+                                      image: NetworkImage(imageUrl),
+                                      fit: BoxFit.fitHeight,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${name[0].toUpperCase()}${name.substring(1)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                  ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${name[0].toUpperCase()}${name.substring(1)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    Text(
+                                      '#$id',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  '#$id',
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                child: Row(
+                                  children: types.map<Widget>((typeInfo) {
+                                    return buildTypeWidget(
+                                        typeInfo as Map<String, dynamic>);
+                                  }).toList(),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
-                            child: Row(
-                              children: types.map<Widget>((typeInfo) {
-                                return buildTypeWidget(
-                                    typeInfo as Map<String, dynamic>);
-                              }).toList(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                } else {
-                  return const SizedBox();
-                }
-              },
+                        ),
+                      );
+                    } else {
+                      return const SizedBox();
+                    }
+                  },
+                ),
+              ),
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+            ],
+          ),
+          // Favorites placeholder
+          Center(
+            child: Text(
+              'Favorites (coming soon)',
+              style: TextStyle(fontSize: 24),
             ),
           ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(),
-            ),
+        ],
+      ),
+      bottomNavigationBar: ConvexAppBar(
+        style: TabStyle.flip,
+        backgroundColor: Colors.red,
+        items: [
+          TabItem(icon: Icons.list, title: 'Pokémons'),
+          TabItem(icon: Icons.favorite, title: 'Favorites'),
+        ],
+        initialActiveIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
+      floatingActionButton: SpeedDial(
+        icon: Icons.sort,
+        iconTheme: const IconThemeData(color: Colors.white),
+        activeIcon: Icons.close,
+        backgroundColor: Colors.red,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.tag, color: Colors.white),
+            backgroundColor: Colors.redAccent,
+            label: 'Sort by Number',
+            onTap: () => _changeSorting('id'),
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.sort_by_alpha, color: Colors.white),
+            backgroundColor: Colors.redAccent,
+            label: 'Sort by Name',
+            onTap: () => _changeSorting('name'),
+          ),
         ],
       ),
     );
