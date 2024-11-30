@@ -273,13 +273,16 @@ class HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(10)),
-                                    image: DecorationImage(
-                                      image: NetworkImage(imageUrl),
-                                      fit: BoxFit.fitHeight,
+                                child: Hero(
+                                  tag: 'pokemon-image-$id',
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(10)),
+                                      image: DecorationImage(
+                                        image: NetworkImage(imageUrl),
+                                        fit: BoxFit.fitHeight,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -333,8 +336,7 @@ class HomePageState extends State<HomePage> {
                 ),
             ],
           ),
-          // Favorites placeholder
-          Center(
+          const Center(
             child: Text(
               'Favorites (coming soon)',
               style: TextStyle(fontSize: 24),
@@ -343,9 +345,9 @@ class HomePageState extends State<HomePage> {
         ],
       ),
       bottomNavigationBar: ConvexAppBar(
-        style: TabStyle.flip,
+        style: TabStyle.textIn,
         backgroundColor: Colors.red,
-        items: [
+        items: const [
           TabItem(icon: Icons.list, title: 'Pokémons'),
           TabItem(icon: Icons.favorite, title: 'Favorites'),
         ],
@@ -361,13 +363,13 @@ class HomePageState extends State<HomePage> {
           SpeedDialChild(
             child: Icon(Icons.tag, color: Colors.white),
             backgroundColor: Colors.redAccent,
-            label: 'Sort by Number',
+            label: 'Ordenar por Numero',
             onTap: () => _changeSorting('id'),
           ),
           SpeedDialChild(
             child: Icon(Icons.sort_by_alpha, color: Colors.white),
             backgroundColor: Colors.redAccent,
-            label: 'Sort by Name',
+            label: 'Ordenar por Nombre',
             onTap: () => _changeSorting('name'),
           ),
         ],
