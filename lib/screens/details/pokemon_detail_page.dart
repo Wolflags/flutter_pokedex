@@ -8,6 +8,11 @@ import '/colors/type_color.dart';
 import '../home/buildTypes.dart';
 import '/services/pokemon_cache_service.dart';
 import '/services/favorites_service.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+
 
 class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
@@ -24,6 +29,8 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
   late PokemonCacheService _cacheService;
   bool _isOffline = false;
   final FavoritesService _favoritesService = FavoritesService();
+  final ScreenshotController _screenshotController = ScreenshotController();
+
 
   Future<Map<String, dynamic>> _initPokemonData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -142,6 +149,40 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
     });
   }
 
+
+  
+
+  void _sharePokemonDetails() async {
+  try {
+    final image = await _screenshotController.capture();
+    if (image == null) return;
+
+    final directory = await getTemporaryDirectory();
+    final imagePath = '${directory.path}/pokemon_${widget.pokemonId}.png';
+    final imageFile = File(imagePath)..writeAsBytesSync(image);
+
+    final pokemonData = await _pokemonData;
+    final name = pokemonData['name'];
+    final stats = pokemonData['pokemon_v2_pokemonstats']
+        .map((stat) => '${stat['pokemon_v2_stat']['name']}: ${stat['base_stat']}')
+        .join('\n');
+
+    final shareText = 'Detalles de ${name[0].toUpperCase()}${name.substring(1)}:\n\n'
+        'ID: ${widget.pokemonId}\n\n'
+        'Estadísticas:\n$stats';
+
+    await Share.shareXFiles(
+      [XFile(imageFile.path)],
+      text: shareText,
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al compartir: $e')),
+    );
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
     final int id = widget.pokemonId;
@@ -169,28 +210,24 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
             Navigator.pop(context);
           },
         ),
-        actions: [
+        actions: [IconButton(
+    icon: Icon(Icons.share, color: Colors.white),
+    onPressed: _sharePokemonDetails,
+  ),
           if (_isOffline)
             const Padding(
               padding: EdgeInsets.all(8.0),
               child: Icon(Icons.offline_bolt, color: Colors.white),
             ),
         ],
+        
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
-            Hero(
-              tag: 'pokemon-image-$id',
-              child: Image.network(
-                imageUrl,
-                height: 200,
-                width: 200,
-                fit: BoxFit.cover,
-              ),
-            ),
+            
             const SizedBox(height: 16),
             FutureBuilder<Map<String, dynamic>>(
               future: _pokemonData,
@@ -218,24 +255,37 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        '${name[0].toUpperCase()}${name.substring(1)}',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '#$id',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Tipos
-                      Container(
+                      Screenshot(
+                        controller: _screenshotController,
+                        child: Container(
+                          color: Colors.white,
+                          child: Column(
+                          children: [
+                            Hero(
+              tag: 'pokemon-image-$id',
+              child: Image.network(
+                imageUrl,
+                height: 200,
+                width: 200,
+                fit: BoxFit.cover,
+              ),
+            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              '${name[0].toUpperCase()}${name.substring(1)}',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '#$id',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 12, horizontal: 8),
                         margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -398,7 +448,12 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
+                          ],
+                        ),
+                        )
+                      ),
+                      
+                      
                       // Habilidades
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
