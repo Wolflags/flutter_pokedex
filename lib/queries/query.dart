@@ -43,17 +43,21 @@ const String fetchPokemonDetailQuery = r'''
           name
         }
       }
-      pokemon_v2_pokemonmoves {
-        pokemon_v2_move {
-          name
-          power
-          pp
-          accuracy
-          pokemon_v2_type {
-            name
-          }
-        }
+      pokemon_v2_pokemonmoves(order_by: {pokemon_v2_movelearnmethod: {name: asc}, level: asc}) {
+    level
+    pokemon_v2_move {
+      name
+      power
+      pp
+      accuracy
+      pokemon_v2_type {
+        name
       }
+    }
+    pokemon_v2_movelearnmethod {
+      name
+    }
+  }
       pokemon_v2_pokemonspecy {
         pokemon_v2_evolutionchain {
           pokemon_v2_pokemonspecies(order_by: {id: asc}) {

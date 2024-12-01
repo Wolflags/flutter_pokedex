@@ -18,6 +18,7 @@ class PokemonDetailPage extends StatefulWidget {
 class PokemonDetailPageState extends State<PokemonDetailPage> {
   late Future<Map<String, dynamic>> _pokemonData;
   bool _isFavorited = false;
+  int _selectedMoveMethodIndex = 0;
 
   @override
   void initState() {
@@ -45,6 +46,18 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
 
     return pokemon;
   }
+
+  Map<String, List<dynamic>> _groupMovesByLearnMethod(List<dynamic> moves) {
+  final groupedMoves = <String, List<dynamic>>{};
+  for (var move in moves) {
+    final learnMethod = move['pokemon_v2_movelearnmethod']['name'];
+    if (!groupedMoves.containsKey(learnMethod)) {
+      groupedMoves[learnMethod] = [];
+    }
+    groupedMoves[learnMethod]!.add(move);
+  }
+  return groupedMoves;
+}
 
   void _navigateToNextPokemon() {
     Navigator.pushReplacement(
@@ -331,39 +344,244 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                           ),
                         ),
                       const SizedBox(height: 16),
-                      Padding(
+                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          // children: [
-                          //   const Text(
-                          //     'Movimientos',
-                          //     style: TextStyle(
-                          //         fontSize: 24, fontWeight: FontWeight.bold),
-                          //   ),
-                          //   const SizedBox(height: 8),
-                          //   ListView.builder(
-                          //     shrinkWrap: true,
-                          //     physics: const NeverScrollableScrollPhysics(),
-                          //     itemCount: moves.length,
-                          //     itemBuilder: (context, index) {
-                          //       final move = moves[index]['pokemon_v2_move'];
-                          //       final moveName = move['name'];
-                          //       final movePower = move['power'] ?? 'N/A';
-                          //       // final movePp = move['pp'];
-                          //       final moveAccuracy = move['accuracy'] ?? 'N/A';
-                          //       final moveType = move['pokemon_v2_type']['name'];
-
-                          //       return ListTile(
-                          //         title: Text(moveName),
-                          //         subtitle: Text(
-                          //             'Tipo: $moveType, Poder: $movePower, Precisión: $moveAccuracy'),
-                          //       );
-                          //     },
-                          //   ),
-                          // ],
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.red.shade300, Colors.red.shade600],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.auto_awesome, color: Colors.red.shade600),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Movimientos',
+                                        style: TextStyle(
+                                          fontSize: 24, 
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Builder(
+                                  builder: (context) {
+                                    final groupedMoves = _groupMovesByLearnMethod(moves);
+                                    final learnMethods = groupedMoves.keys.toList();
+                      
+                                    return DefaultTabController(
+                                      length: learnMethods.length,
+                                      child: Column(
+                                        children: [
+                                                                                    Container(
+                                            height: 45,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [Colors.grey.shade200, Colors.grey.shade100],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius: BorderRadius.circular(25),
+                                              border: Border.all(color: Colors.grey.shade300),
+                                            ),
+                                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                            child: TabBar(
+                                              isScrollable: true,
+                                              tabs: learnMethods.map((method) {
+                                                return Tab(
+                                                  height: 35, // Reduced tab height
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          method == 'level-up' ? Icons.straight : 
+                                                          method == 'machine' ? Icons.settings : 
+                                                          method == 'egg' ? Icons.egg : 
+                                                          Icons.auto_awesome,
+                                                          size: 16, // Smaller icon
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                          method.replaceAll('-', ' ').toUpperCase(),
+                                                          style: const TextStyle(fontSize: 12), // Smaller text
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              }).toList(),
+                                              labelColor: Colors.white,
+                                              unselectedLabelColor: Colors.grey.shade600,
+                                              indicator: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [Colors.red.shade400, Colors.red.shade600],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                ),
+                                                borderRadius: BorderRadius.circular(20),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.red.shade200.withOpacity(0.5),
+                                                    blurRadius: 4,
+                                                    spreadRadius: 1,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              dividerColor: Colors.transparent,
+                                              indicatorSize: TabBarIndicatorSize.tab,
+                                              labelPadding: EdgeInsets.zero,
+                                              tabAlignment: TabAlignment.center,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          SizedBox(
+                                            height: 400,
+                                            child: TabBarView(
+                                              children: learnMethods.map((method) {
+                                                final methodMoves = groupedMoves[method]!;
+                                                return ListView.builder(
+                                                  padding: const EdgeInsets.all(8),
+                                                  itemCount: methodMoves.length,
+                                                  itemBuilder: (context, index) {
+                                                    final move = methodMoves[index];
+                                                    final moveDetails = move['pokemon_v2_move'];
+                                                    final moveName = moveDetails['name'];
+                                                    final movePower = moveDetails['power']?.toString() ?? 'N/A';
+                                                    final moveAccuracy = moveDetails['accuracy']?.toString() ?? 'N/A';
+                                                    final moveType = moveDetails['pokemon_v2_type']['name'];
+                                                    final level = move['level'];
+                      
+                                                    return Card(
+                                                      elevation: 3,
+                                                      margin: const EdgeInsets.symmetric(
+                                                        vertical: 4, 
+                                                        horizontal: 8
+                                                      ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(15),
+                                                      ),
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                          borderRadius: BorderRadius.circular(15),
+                                                          gradient: LinearGradient(
+                                                            colors: [
+                                                              Colors.white,
+                                                              getTypeColor(moveType).withOpacity(0.1),
+                                                            ],
+                                                            begin: Alignment.centerLeft,
+                                                            end: Alignment.centerRight,
+                                                          ),
+                                                        ),
+                                                        child: ListTile(
+                                                          leading: Container(
+                                                            width: 45,
+                                                            height: 45,
+                                                            decoration: BoxDecoration(
+                                                              color: getTypeColor(moveType),
+                                                              shape: BoxShape.circle,
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: getTypeColor(moveType).withOpacity(0.5),
+                                                                  blurRadius: 6,
+                                                                  offset: const Offset(0, 3),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Center(
+                                                              child: method == 'level-up'
+                                                                  ? Text(
+                                                                      'Lv${level}',
+                                                                      style: const TextStyle(
+                                                                        color: Colors.white,
+                                                                        fontWeight: FontWeight.bold,
+                                                                      ),
+                                                                    )
+                                                                  : Icon(
+                                                                      Icons.auto_awesome,
+                                                                      color: Colors.white,
+                                                                      size: 24,
+                                                                    ),
+                                                            ),
+                                                          ),
+                                                          title: Text(
+                                                            moveName.replaceAll('-', ' ').toUpperCase(),
+                                                            style: const TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                          subtitle: Wrap(
+                                                            spacing: 8,
+                                                            children: [
+                                                              Container(
+                                                                padding: const EdgeInsets.symmetric(
+                                                                  horizontal: 8,
+                                                                  vertical: 2,
+                                                                ),
+                                                                decoration: BoxDecoration(
+                                                                  color: getTypeColor(moveType),
+                                                                  borderRadius: BorderRadius.circular(12),
+                                                                ),
+                                                                child: Text(
+                                                                  moveType.toUpperCase(),
+                                                                  style: const TextStyle(
+                                                                    color: Colors.white,
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Text('POW: $movePower'),
+                                                              Text('ACC: $moveAccuracy'),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              }).toList(),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
+                      SizedBox(height: 36),
                     ],
                   ),
                 );
