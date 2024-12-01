@@ -18,7 +18,6 @@ class PokemonDetailPage extends StatefulWidget {
 class PokemonDetailPageState extends State<PokemonDetailPage> {
   late Future<Map<String, dynamic>> _pokemonData;
   bool _isFavorited = false;
-  int _selectedMoveMethodIndex = 0;
 
   @override
   void initState() {
@@ -49,12 +48,21 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
 
   Map<String, List<dynamic>> _groupMovesByLearnMethod(List<dynamic> moves) {
   final groupedMoves = <String, List<dynamic>>{};
+  final Map<String, Set<String>> movesAddedPerMethod = {};
+
   for (var move in moves) {
     final learnMethod = move['pokemon_v2_movelearnmethod']['name'];
+    final moveName = move['pokemon_v2_move']['name'];
+
     if (!groupedMoves.containsKey(learnMethod)) {
       groupedMoves[learnMethod] = [];
+      movesAddedPerMethod[learnMethod] = {};
     }
-    groupedMoves[learnMethod]!.add(move);
+
+    if (!movesAddedPerMethod[learnMethod]!.contains(moveName)) {
+      groupedMoves[learnMethod]!.add(move);
+      movesAddedPerMethod[learnMethod]!.add(moveName);
+    }
   }
   return groupedMoves;
 }
