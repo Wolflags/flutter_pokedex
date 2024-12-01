@@ -117,38 +117,45 @@ class HomePageState extends State<HomePage> {
       };
     }
 
-    final QueryOptions options = QueryOptions(
-      document: gql(fetchPokemonsQuery),
-      variables: {
-        'limit': 20,
-        'offset': _pokemonList.length,
-        'where': where,
-        'order_by': [
-          {_currentSorting: 'asc'}
-        ],
-      },
-    );
+    try {
+      final QueryOptions options = QueryOptions(
+        document: gql(fetchPokemonsQuery),
+        variables: {
+          'limit': 20,
+          'offset': _pokemonList.length,
+          'where': where,
+          'order_by': [
+            {_currentSorting: 'asc'}
+          ],
+        },
+      );
 
-    final QueryResult result = await client.query(options);
+      final QueryResult result = await client.query(options);
 
-    if (result.hasException) {
+      if (result.hasException) {
+        setState(() {
+          _isLoading = false;
+          _isFetching = false;
+        });
+        return;
+      }
+
+      final List fetchedPokemons = result.data?['pokemon_v2_pokemon'];
+
+      setState(() {
+        _pokemonList.addAll(fetchedPokemons);
+        _isLoading = false;
+        _isFetching = false;
+        if (fetchedPokemons.length < 20) {
+          _hasNextPage = false;
+        }
+      });
+    } catch (e) {
       setState(() {
         _isLoading = false;
         _isFetching = false;
       });
-      return;
     }
-
-    final List fetchedPokemons = result.data?['pokemon_v2_pokemon'];
-
-    setState(() {
-      _pokemonList.addAll(fetchedPokemons);
-      _isLoading = false;
-      _isFetching = false;
-      if (fetchedPokemons.length < 20) {
-        _hasNextPage = false;
-      }
-    });
   }
 
   void _toggleType(String type) {

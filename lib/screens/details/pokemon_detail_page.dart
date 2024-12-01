@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
 import '/colors/type_color.dart';
 import '../home/buildTypes.dart';
+import '/services/pokemon_cache_service.dart';
 
 class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
@@ -16,34 +18,65 @@ class PokemonDetailPage extends StatefulWidget {
 }
 
 class PokemonDetailPageState extends State<PokemonDetailPage> {
-  late Future<Map<String, dynamic>> _pokemonData;
+  // Cambiar la declaración de _pokemonData
+  late Future<Map<String, dynamic>> _pokemonData = _initPokemonData();
   bool _isFavorited = false;
+  late PokemonCacheService _cacheService;
+  bool _isOffline = false;
+
+  Future<Map<String, dynamic>> _initPokemonData() async {
+    final prefs = await SharedPreferences.getInstance();
+    _cacheService = PokemonCacheService(prefs);
+    return _fetchPokemonDetail();
+  }
 
   @override
   void initState() {
     super.initState();
-    _pokemonData = _fetchPokemonDetail();
+    // Eliminar _initializeCache() de aquí
   }
 
+  // Eliminar el método _initializeCache() ya que no lo necesitamos más
+
   Future<Map<String, dynamic>> _fetchPokemonDetail() async {
-    final GraphQLClient client = getGraphQLClient();
-
-    final QueryOptions options = QueryOptions(
-      document: gql(fetchPokemonDetailQuery),
-      variables: {
-        'id': widget.pokemonId,
-      },
-    );
-
-    final QueryResult result = await client.query(options);
-
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
+    // Intentar obtener datos del caché primero
+    final cachedData = _cacheService.getCachedPokemonDetail(widget.pokemonId);
+    if (cachedData != null) {
+      setState(() => _isOffline = true);
+      return cachedData;
     }
 
-    final pokemon = result.data?['pokemon_v2_pokemon_by_pk'];
+    try {
+      final GraphQLClient client = getGraphQLClient();
+      final QueryOptions options = QueryOptions(
+        document: gql(fetchPokemonDetailQuery),
+        variables: {
+          'id': widget.pokemonId,
+        },
+      );
 
-    return pokemon;
+      final QueryResult result = await client.query(options);
+
+      if (result.hasException) {
+        throw Exception(result.exception.toString());
+      }
+
+      final pokemon = result.data?['pokemon_v2_pokemon_by_pk'];
+      
+      // Guardar en caché
+      await _cacheService.cachePokemonDetail(widget.pokemonId, pokemon);
+      setState(() => _isOffline = false);
+      
+      return pokemon;
+    } catch (e) {
+      // Si hay error y tenemos datos en caché, los usamos
+      final cachedData = _cacheService.getCachedPokemonDetail(widget.pokemonId);
+      if (cachedData != null) {
+        setState(() => _isOffline = true);
+        return cachedData;
+      }
+      throw e;
+    }
   }
 
   Map<String, List<dynamic>> _groupMovesByLearnMethod(List<dynamic> moves) {
@@ -122,6 +155,13 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
       Navigator.pop(context);
     },
   ),
+        actions: [
+          if (_isOffline)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(Icons.offline_bolt, color: Colors.white),
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
