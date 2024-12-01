@@ -4,6 +4,7 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import '/api/graphql_client.dart';
 import '/queries/query.dart';
 import '/colors/type_color.dart';
+import '../home/buildTypes.dart';
 
 class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
@@ -159,21 +160,56 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                       ),
                       const SizedBox(height: 16),
                       // Tipos
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: types.map<Widget>((typeInfo) {
-                          final typeName = typeInfo['pokemon_v2_type']['name'];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                            child: Chip(
-                              backgroundColor: getTypeColor(typeName),
-                              label: Text(
-                                typeName.toUpperCase(),
-                                style: const TextStyle(color: Colors.white),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: types.map<Widget>((typeInfo) {
+                            final typeName = typeInfo['pokemon_v2_type']['name'];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      getTypeColor(typeName).withOpacity(0.8),
+                                      getTypeColor(typeName),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: getTypeColor(typeName).withOpacity(0.4),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      buildTypeWidget(typeInfo),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        typeName.toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                          );
-                        }).toList(),
+                            );
+                          }).toList(),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       // Estadísticas

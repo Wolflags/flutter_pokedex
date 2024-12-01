@@ -87,12 +87,20 @@ class HomePageState extends State<HomePage> {
       _hasNextPage = true;
     }
 
-    Map<String, dynamic> where = {};
-
-    where['pokemon_v2_pokemonforms'] = {'is_default': {'_eq': true}};
+    Map<String, dynamic> where = {
+      'pokemon_v2_pokemonforms': {'is_default': {'_eq': true}}
+    };
 
     if (_searchQuery.isNotEmpty) {
-      where['name'] = {'_ilike': '%$_searchQuery%'};
+      final isNumeric = int.tryParse(_searchQuery) != null;
+      
+      where = {
+        '_or': [
+          {'name': {'_ilike': '%$_searchQuery%'}},
+          if (isNumeric) {'id': {'_eq': int.parse(_searchQuery)}}
+        ],
+        'pokemon_v2_pokemonforms': {'is_default': {'_eq': true}}
+      };
     }
 
     if (_selectedGenerations.isNotEmpty) {
@@ -116,7 +124,7 @@ class HomePageState extends State<HomePage> {
         'offset': _pokemonList.length,
         'where': where,
         'order_by': [
-          {_currentSorting: 'asc'} // Updated to use current sorting
+          {_currentSorting: 'asc'}
         ],
       },
     );
