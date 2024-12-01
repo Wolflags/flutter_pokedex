@@ -236,119 +236,291 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                       // Estadísticas
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Estadísticas',
-                              style: TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.bold),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.blue.shade300, Colors.blue.shade600],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            const SizedBox(height: 8),
-                            ...stats.map<Widget>((statInfo) {
-                              final statName = statInfo['pokemon_v2_stat']['name'];
-                              final baseStat = statInfo['base_stat'];
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    statName.toUpperCase(),
-                                    style: const TextStyle(fontSize: 16),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.bar_chart, color: Colors.blue.shade600),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Estadísticas',
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    baseStat.toString(),
-                                    style: const TextStyle(fontSize: 16),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    children: stats.map<Widget>((statInfo) {
+                                      final statName = statInfo['pokemon_v2_stat']['name'];
+                                      final baseStat = statInfo['base_stat'];
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 8.0),
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  statName.toUpperCase(),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  baseStat.toString(),
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.blue.shade600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            LinearProgressIndicator(
+                                              value: baseStat / 255,
+                                              backgroundColor: Colors.grey.shade200,
+                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                Colors.blue.shade400,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
                                   ),
-                                ],
-                              );
-                            }).toList(),
-                          ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
+                      
                       // Habilidades
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Habilidades',
-                              style: TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.bold),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.purple.shade300, Colors.purple.shade600],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              children: abilities.map<Widget>((abilityInfo) {
-                                final abilityName =
-                                    abilityInfo['pokemon_v2_ability']['name'];
-                                return Chip(
-                                  label: Text(
-                                    abilityName,
-                                    style: const TextStyle(color: Colors.white),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.purple.withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.auto_awesome, color: Colors.purple.shade600),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Habilidades',
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  backgroundColor: Colors.blueAccent,
-                                );
-                              }).toList(),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 24.0),
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: abilities.map<Widget>((abilityInfo) {
+                                      final abilityName = abilityInfo['pokemon_v2_ability']['name'];
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [Colors.purple.shade400, Colors.purple.shade600],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.purple.shade200,
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Text(
+                                          abilityName.toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
+
                       // Evoluciones
                       if (evolutions != null && evolutions.length > 1)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Evoluciones',
-                                style: TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Colors.green.shade300, Colors.green.shade600],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                              const SizedBox(height: 8),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: evolutions.map<Widget>((evolution) {
-                                    final evolutionId = evolution['id'];
-                                    final evolutionName = evolution['name'];
-                                    final evolutionImageUrl =
-                                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$evolutionId.png';
-                                    return GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => PokemonDetailPage(
-                                                pokemonId: evolutionId),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.green.withOpacity(0.3),
+                                  blurRadius: 15,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.change_circle, color: Colors.green.shade600),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Evoluciones',
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.all(16),
+                                    child: Row(
+                                      children: evolutions.map<Widget>((evolution) {
+                                        final evolutionId = evolution['id'];
+                                        final evolutionName = evolution['name'];
+                                        final evolutionImageUrl =
+                                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$evolutionId.png';
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      PokemonDetailPage(pokemonId: evolutionId),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.shade50,
+                                                borderRadius: BorderRadius.circular(15),
+                                                border: Border.all(color: Colors.green.shade200),
+                                              ),
+                                              child: Column(
+                                                children: [
+                                                  Image.network(
+                                                    evolutionImageUrl,
+                                                    height: 80,
+                                                    width: 80,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    evolutionName.toUpperCase(),
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.green.shade700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(right: 8.0, left: 8.0),
-                                        child: Column(
-                                        children: [
-                                          Image.network(
-                                            evolutionImageUrl,
-                                            height: 80,
-                                            width: 80,
-                                            fit: BoxFit.cover,
-                                          ),
-                                          Text(
-                                            evolutionName,
-                                            style: const TextStyle(fontSize: 16),
-                                          ),
-                                        ],
-                                      ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       const SizedBox(height: 16),
@@ -472,7 +644,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                           ),
                                           const SizedBox(height: 8),
                                           SizedBox(
-                                            height: 400,
+                                            height: 332,
                                             child: TabBarView(
                                               children: learnMethods.map((method) {
                                                 final methodMoves = groupedMoves[method]!;
