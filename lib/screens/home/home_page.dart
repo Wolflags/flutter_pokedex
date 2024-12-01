@@ -8,6 +8,7 @@ import '../details/pokemon_detail_page.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'filter_section.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import '../favorites/favorites_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -351,12 +352,7 @@ class HomePageState extends State<HomePage> {
                 ),
             ],
           ),
-          const Center(
-            child: Text(
-              'Favorites (coming soon)',
-              style: TextStyle(fontSize: 24),
-            ),
-          ),
+          FavoritesPage(),
         ],
       ),
       bottomNavigationBar: ConvexAppBar(

@@ -7,6 +7,7 @@ import '/queries/query.dart';
 import '/colors/type_color.dart';
 import '../home/buildTypes.dart';
 import '/services/pokemon_cache_service.dart';
+import '/services/favorites_service.dart';
 
 class PokemonDetailPage extends StatefulWidget {
   final int pokemonId;
@@ -18,11 +19,11 @@ class PokemonDetailPage extends StatefulWidget {
 }
 
 class PokemonDetailPageState extends State<PokemonDetailPage> {
-  // Cambiar la declaración de _pokemonData
   late Future<Map<String, dynamic>> _pokemonData = _initPokemonData();
   bool _isFavorited = false;
   late PokemonCacheService _cacheService;
   bool _isOffline = false;
+  final FavoritesService _favoritesService = FavoritesService();
 
   Future<Map<String, dynamic>> _initPokemonData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -33,7 +34,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
   @override
   void initState() {
     super.initState();
-    // Eliminar _initializeCache() de aquí
+    _isFavorited = FavoritesService().isFavorite(widget.pokemonId);
   }
 
   // Eliminar el método _initializeCache() ya que no lo necesitamos más
@@ -62,14 +63,12 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
       }
 
       final pokemon = result.data?['pokemon_v2_pokemon_by_pk'];
-      
-      // Guardar en caché
+
       await _cacheService.cachePokemonDetail(widget.pokemonId, pokemon);
       setState(() => _isOffline = false);
-      
+
       return pokemon;
     } catch (e) {
-      // Si hay error y tenemos datos en caché, los usamos
       final cachedData = _cacheService.getCachedPokemonDetail(widget.pokemonId);
       if (cachedData != null) {
         setState(() => _isOffline = true);
@@ -79,32 +78,48 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
     }
   }
 
-  Map<String, List<dynamic>> _groupMovesByLearnMethod(List<dynamic> moves) {
-  final groupedMoves = <String, List<dynamic>>{};
-  final Map<String, Set<String>> movesAddedPerMethod = {};
-
-  for (var move in moves) {
-    final learnMethod = move['pokemon_v2_movelearnmethod']['name'];
-    final moveName = move['pokemon_v2_move']['name'];
-
-    if (!groupedMoves.containsKey(learnMethod)) {
-      groupedMoves[learnMethod] = [];
-      movesAddedPerMethod[learnMethod] = {};
-    }
-
-    if (!movesAddedPerMethod[learnMethod]!.contains(moveName)) {
-      groupedMoves[learnMethod]!.add(move);
-      movesAddedPerMethod[learnMethod]!.add(moveName);
-    }
+  void _toggleFavorite() {
+    setState(() {
+      _isFavorited = !_isFavorited;
+      if (_isFavorited) {
+        FavoritesService().addFavorite(widget.pokemonId);
+      } else {
+        FavoritesService().removeFavorite(widget.pokemonId);
+      }
+    });
   }
-  return groupedMoves;
-}
+
+  bool _isFavorite() {
+    return _favoritesService.isFavorite(widget.pokemonId);
+  }
+
+  Map<String, List<dynamic>> _groupMovesByLearnMethod(List<dynamic> moves) {
+    final groupedMoves = <String, List<dynamic>>{};
+    final Map<String, Set<String>> movesAddedPerMethod = {};
+
+    for (var move in moves) {
+      final learnMethod = move['pokemon_v2_movelearnmethod']['name'];
+      final moveName = move['pokemon_v2_move']['name'];
+
+      if (!groupedMoves.containsKey(learnMethod)) {
+        groupedMoves[learnMethod] = [];
+        movesAddedPerMethod[learnMethod] = {};
+      }
+
+      if (!movesAddedPerMethod[learnMethod]!.contains(moveName)) {
+        groupedMoves[learnMethod]!.add(move);
+        movesAddedPerMethod[learnMethod]!.add(moveName);
+      }
+    }
+    return groupedMoves;
+  }
 
   void _navigateToNextPokemon() {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => PokemonDetailPage(pokemonId: widget.pokemonId + 1),
+        builder: (context) =>
+            PokemonDetailPage(pokemonId: widget.pokemonId + 1),
       ),
     );
   }
@@ -125,8 +140,6 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
     setState(() {
       _isFavorited = !_isFavorited;
     });
-
-    
   }
 
   @override
@@ -137,24 +150,25 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles del Pokémon',
+        title: const Text(
+          'Detalles del Pokémon',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 25,
             color: Colors.white,
-          ),),
+          ),
+        ),
         backgroundColor: Colors.red,
         centerTitle: true,
         leading: IconButton(
-    icon: const Icon(
-      Icons.arrow_back,
-      color: Colors.white,
-    
-    ),
-    onPressed: () {
-      Navigator.pop(context);
-    },
-  ),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           if (_isOffline)
             const Padding(
@@ -222,14 +236,17 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                       const SizedBox(height: 16),
                       // Tipos
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 8),
                         margin: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: types.map<Widget>((typeInfo) {
-                            final typeName = typeInfo['pokemon_v2_type']['name'];
+                            final typeName =
+                                typeInfo['pokemon_v2_type']['name'];
                             return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
                               child: Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -243,14 +260,16 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: getTypeColor(typeName).withOpacity(0.4),
+                                      color: getTypeColor(typeName)
+                                          .withOpacity(0.4),
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -279,7 +298,10 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.blue.shade300, Colors.blue.shade600],
+                              colors: [
+                                Colors.blue.shade300,
+                                Colors.blue.shade600
+                              ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -306,7 +328,8 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.bar_chart, color: Colors.blue.shade600),
+                                      Icon(Icons.bar_chart,
+                                          color: Colors.blue.shade600),
                                       const SizedBox(width: 8),
                                       const Text(
                                         'Estadísticas',
@@ -323,14 +346,18 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                   padding: const EdgeInsets.all(16.0),
                                   child: Column(
                                     children: stats.map<Widget>((statInfo) {
-                                      final statName = statInfo['pokemon_v2_stat']['name'];
+                                      final statName =
+                                          statInfo['pokemon_v2_stat']['name'];
                                       final baseStat = statInfo['base_stat'];
                                       return Padding(
-                                        padding: const EdgeInsets.only(bottom: 8.0),
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8.0),
                                         child: Column(
                                           children: [
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   statName.toUpperCase(),
@@ -352,8 +379,10 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                             const SizedBox(height: 4),
                                             LinearProgressIndicator(
                                               value: baseStat / 255,
-                                              backgroundColor: Colors.grey.shade200,
-                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                              backgroundColor:
+                                                  Colors.grey.shade200,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
                                                 Colors.blue.shade400,
                                               ),
                                             ),
@@ -369,14 +398,17 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Habilidades
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.purple.shade300, Colors.purple.shade600],
+                              colors: [
+                                Colors.purple.shade300,
+                                Colors.purple.shade600
+                              ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -399,11 +431,13 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                             child: Column(
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                                  padding: const EdgeInsets.fromLTRB(
+                                      16.0, 16.0, 16.0, 8.0),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.auto_awesome, color: Colors.purple.shade600),
+                                      Icon(Icons.auto_awesome,
+                                          color: Colors.purple.shade600),
                                       const SizedBox(width: 8),
                                       const Text(
                                         'Habilidades',
@@ -417,21 +451,30 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 24.0),
+                                  padding: const EdgeInsets.fromLTRB(
+                                      16.0, 8.0, 16.0, 24.0),
                                   child: Wrap(
                                     spacing: 8,
                                     runSpacing: 8,
-                                    children: abilities.map<Widget>((abilityInfo) {
-                                      final abilityName = abilityInfo['pokemon_v2_ability']['name'];
+                                    children:
+                                        abilities.map<Widget>((abilityInfo) {
+                                      final abilityName =
+                                          abilityInfo['pokemon_v2_ability']
+                                              ['name'];
                                       return Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
-                                            colors: [Colors.purple.shade400, Colors.purple.shade600],
+                                            colors: [
+                                              Colors.purple.shade400,
+                                              Colors.purple.shade600
+                                            ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           ),
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
                                           boxShadow: [
                                             BoxShadow(
                                               color: Colors.purple.shade200,
@@ -465,7 +508,10 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                           child: Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [Colors.green.shade300, Colors.green.shade600],
+                                colors: [
+                                  Colors.green.shade300,
+                                  Colors.green.shade600
+                                ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -490,9 +536,11 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                   Padding(
                                     padding: const EdgeInsets.all(16.0),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.change_circle, color: Colors.green.shade600),
+                                        Icon(Icons.change_circle,
+                                            color: Colors.green.shade600),
                                         const SizedBox(width: 8),
                                         const Text(
                                           'Evoluciones',
@@ -509,20 +557,24 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                     scrollDirection: Axis.horizontal,
                                     padding: const EdgeInsets.all(16),
                                     child: Row(
-                                      children: evolutions.map<Widget>((evolution) {
+                                      children:
+                                          evolutions.map<Widget>((evolution) {
                                         final evolutionId = evolution['id'];
                                         final evolutionName = evolution['name'];
                                         final evolutionImageUrl =
                                             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$evolutionId.png';
                                         return Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
                                           child: GestureDetector(
                                             onTap: () {
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) =>
-                                                      PokemonDetailPage(pokemonId: evolutionId),
+                                                      PokemonDetailPage(
+                                                          pokemonId:
+                                                              evolutionId),
                                                 ),
                                               );
                                             },
@@ -530,8 +582,11 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 color: Colors.green.shade50,
-                                                borderRadius: BorderRadius.circular(15),
-                                                border: Border.all(color: Colors.green.shade200),
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                border: Border.all(
+                                                    color:
+                                                        Colors.green.shade200),
                                               ),
                                               child: Column(
                                                 children: [
@@ -546,8 +601,10 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                                     evolutionName.toUpperCase(),
                                                     style: TextStyle(
                                                       fontSize: 14,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.green.shade700,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          Colors.green.shade700,
                                                     ),
                                                   ),
                                                 ],
@@ -564,12 +621,15 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                           ),
                         ),
                       const SizedBox(height: 16),
-                       Padding(
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.red.shade300, Colors.red.shade600],
+                              colors: [
+                                Colors.red.shade300,
+                                Colors.red.shade600
+                              ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -596,12 +656,13 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.auto_awesome, color: Colors.red.shade600),
+                                      Icon(Icons.auto_awesome,
+                                          color: Colors.red.shade600),
                                       const SizedBox(width: 8),
                                       const Text(
                                         'Movimientos',
                                         style: TextStyle(
-                                          fontSize: 24, 
+                                          fontSize: 24,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black87,
                                         ),
@@ -611,47 +672,75 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                 ),
                                 Builder(
                                   builder: (context) {
-                                    final groupedMoves = _groupMovesByLearnMethod(moves);
-                                    final learnMethods = groupedMoves.keys.toList();
-                      
+                                    final groupedMoves =
+                                        _groupMovesByLearnMethod(moves);
+                                    final learnMethods =
+                                        groupedMoves.keys.toList();
+
                                     return DefaultTabController(
                                       length: learnMethods.length,
                                       child: Column(
                                         children: [
-                                                                                    Container(
+                                          Container(
                                             height: 45,
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
-                                                colors: [Colors.grey.shade200, Colors.grey.shade100],
+                                                colors: [
+                                                  Colors.grey.shade200,
+                                                  Colors.grey.shade100
+                                                ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
-                                              borderRadius: BorderRadius.circular(25),
-                                              border: Border.all(color: Colors.grey.shade300),
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              border: Border.all(
+                                                  color: Colors.grey.shade300),
                                             ),
-                                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                            margin: const EdgeInsets.symmetric(
+                                                horizontal: 16),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 4, vertical: 4),
                                             child: TabBar(
                                               isScrollable: true,
                                               tabs: learnMethods.map((method) {
                                                 return Tab(
-                                                  height: 35, // Reduced tab height
+                                                  height:
+                                                      35, // Reduced tab height
                                                   child: Padding(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12.0),
                                                     child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
                                                         Icon(
-                                                          method == 'level-up' ? Icons.straight : 
-                                                          method == 'machine' ? Icons.settings : 
-                                                          method == 'egg' ? Icons.egg : 
-                                                          Icons.auto_awesome,
-                                                          size: 16, // Smaller icon
+                                                          method == 'level-up'
+                                                              ? Icons.straight
+                                                              : method ==
+                                                                      'machine'
+                                                                  ? Icons
+                                                                      .settings
+                                                                  : method ==
+                                                                          'egg'
+                                                                      ? Icons
+                                                                          .egg
+                                                                      : Icons
+                                                                          .auto_awesome,
+                                                          size:
+                                                              16, // Smaller icon
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                            width: 4),
                                                         Text(
-                                                          method.replaceAll('-', ' ').toUpperCase(),
-                                                          style: const TextStyle(fontSize: 12), // Smaller text
+                                                          method
+                                                              .replaceAll(
+                                                                  '-', ' ')
+                                                              .toUpperCase(),
+                                                          style: const TextStyle(
+                                                              fontSize:
+                                                                  12), // Smaller text
                                                         ),
                                                       ],
                                                     ),
@@ -659,17 +748,23 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                                 );
                                               }).toList(),
                                               labelColor: Colors.white,
-                                              unselectedLabelColor: Colors.grey.shade600,
+                                              unselectedLabelColor:
+                                                  Colors.grey.shade600,
                                               indicator: BoxDecoration(
                                                 gradient: LinearGradient(
-                                                  colors: [Colors.red.shade400, Colors.red.shade600],
+                                                  colors: [
+                                                    Colors.red.shade400,
+                                                    Colors.red.shade600
+                                                  ],
                                                   begin: Alignment.topLeft,
                                                   end: Alignment.bottomRight,
                                                 ),
-                                                borderRadius: BorderRadius.circular(20),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Colors.red.shade200.withOpacity(0.5),
+                                                    color: Colors.red.shade200
+                                                        .withOpacity(0.5),
                                                     blurRadius: 4,
                                                     spreadRadius: 1,
                                                     offset: const Offset(0, 2),
@@ -677,7 +772,8 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                                 ],
                                               ),
                                               dividerColor: Colors.transparent,
-                                              indicatorSize: TabBarIndicatorSize.tab,
+                                              indicatorSize:
+                                                  TabBarIndicatorSize.tab,
                                               labelPadding: EdgeInsets.zero,
                                               tabAlignment: TabAlignment.center,
                                             ),
@@ -686,101 +782,164 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                           SizedBox(
                                             height: 332,
                                             child: TabBarView(
-                                              children: learnMethods.map((method) {
-                                                final methodMoves = groupedMoves[method]!;
+                                              children:
+                                                  learnMethods.map((method) {
+                                                final methodMoves =
+                                                    groupedMoves[method]!;
                                                 return ListView.builder(
-                                                  padding: const EdgeInsets.all(8),
+                                                  padding:
+                                                      const EdgeInsets.all(8),
                                                   itemCount: methodMoves.length,
-                                                  itemBuilder: (context, index) {
-                                                    final move = methodMoves[index];
-                                                    final moveDetails = move['pokemon_v2_move'];
-                                                    final moveName = moveDetails['name'];
-                                                    final movePower = moveDetails['power']?.toString() ?? 'N/A';
-                                                    final moveAccuracy = moveDetails['accuracy']?.toString() ?? 'N/A';
-                                                    final moveType = moveDetails['pokemon_v2_type']['name'];
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    final move =
+                                                        methodMoves[index];
+                                                    final moveDetails =
+                                                        move['pokemon_v2_move'];
+                                                    final moveName =
+                                                        moveDetails['name'];
+                                                    final movePower =
+                                                        moveDetails['power']
+                                                                ?.toString() ??
+                                                            'N/A';
+                                                    final moveAccuracy =
+                                                        moveDetails['accuracy']
+                                                                ?.toString() ??
+                                                            'N/A';
+                                                    final moveType = moveDetails[
+                                                            'pokemon_v2_type']
+                                                        ['name'];
                                                     final level = move['level'];
-                      
+
                                                     return Card(
                                                       elevation: 3,
-                                                      margin: const EdgeInsets.symmetric(
-                                                        vertical: 4, 
-                                                        horizontal: 8
-                                                      ),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(15),
+                                                      margin: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 4,
+                                                          horizontal: 8),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15),
                                                       ),
                                                       child: Container(
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(15),
-                                                          gradient: LinearGradient(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(15),
+                                                          gradient:
+                                                              LinearGradient(
                                                             colors: [
                                                               Colors.white,
-                                                              getTypeColor(moveType).withOpacity(0.1),
+                                                              getTypeColor(
+                                                                      moveType)
+                                                                  .withOpacity(
+                                                                      0.1),
                                                             ],
-                                                            begin: Alignment.centerLeft,
-                                                            end: Alignment.centerRight,
+                                                            begin: Alignment
+                                                                .centerLeft,
+                                                            end: Alignment
+                                                                .centerRight,
                                                           ),
                                                         ),
                                                         child: ListTile(
                                                           leading: Container(
                                                             width: 45,
                                                             height: 45,
-                                                            decoration: BoxDecoration(
-                                                              color: getTypeColor(moveType),
-                                                              shape: BoxShape.circle,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color:
+                                                                  getTypeColor(
+                                                                      moveType),
+                                                              shape: BoxShape
+                                                                  .circle,
                                                               boxShadow: [
                                                                 BoxShadow(
-                                                                  color: getTypeColor(moveType).withOpacity(0.5),
+                                                                  color: getTypeColor(
+                                                                          moveType)
+                                                                      .withOpacity(
+                                                                          0.5),
                                                                   blurRadius: 6,
-                                                                  offset: const Offset(0, 3),
+                                                                  offset:
+                                                                      const Offset(
+                                                                          0, 3),
                                                                 ),
                                                               ],
                                                             ),
                                                             child: Center(
-                                                              child: method == 'level-up'
+                                                              child: method ==
+                                                                      'level-up'
                                                                   ? Text(
                                                                       'Lv${level}',
-                                                                      style: const TextStyle(
-                                                                        color: Colors.white,
-                                                                        fontWeight: FontWeight.bold,
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
                                                                       ),
                                                                     )
                                                                   : Icon(
-                                                                      Icons.auto_awesome,
-                                                                      color: Colors.white,
+                                                                      Icons
+                                                                          .auto_awesome,
+                                                                      color: Colors
+                                                                          .white,
                                                                       size: 24,
                                                                     ),
                                                             ),
                                                           ),
                                                           title: Text(
-                                                            moveName.replaceAll('-', ' ').toUpperCase(),
-                                                            style: const TextStyle(
-                                                              fontWeight: FontWeight.bold,
+                                                            moveName
+                                                                .replaceAll(
+                                                                    '-', ' ')
+                                                                .toUpperCase(),
+                                                            style:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
                                                             ),
                                                           ),
                                                           subtitle: Wrap(
                                                             spacing: 8,
                                                             children: [
                                                               Container(
-                                                                padding: const EdgeInsets.symmetric(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
                                                                   horizontal: 8,
                                                                   vertical: 2,
                                                                 ),
-                                                                decoration: BoxDecoration(
-                                                                  color: getTypeColor(moveType),
-                                                                  borderRadius: BorderRadius.circular(12),
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: getTypeColor(
+                                                                      moveType),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              12),
                                                                 ),
                                                                 child: Text(
-                                                                  moveType.toUpperCase(),
-                                                                  style: const TextStyle(
-                                                                    color: Colors.white,
-                                                                    fontSize: 12,
-                                                                    fontWeight: FontWeight.bold,
+                                                                  moveType
+                                                                      .toUpperCase(),
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
                                                                   ),
                                                                 ),
                                                               ),
-                                                              Text('POW: $movePower'),
-                                                              Text('ACC: $moveAccuracy'),
+                                                              Text(
+                                                                  'POW: $movePower'),
+                                                              Text(
+                                                                  'ACC: $moveAccuracy'),
                                                             ],
                                                           ),
                                                         ),
@@ -815,7 +974,17 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
         backgroundColor: Colors.red,
         items: [
           TabItem(icon: Icons.arrow_back, title: 'Previous'),
-          TabItem(icon: _isFavorited ? Icons.favorite : Icons.favorite_border, title: 'Favorite'),
+          TabItem(
+            icon: GestureDetector(
+              onTap: _toggleFavorite,
+              child: Icon(
+                _isFavorited ? Icons.favorite : Icons.favorite_border,
+                color: Colors.red,
+                size: 30,
+              ),
+            ),
+            title: 'Favorite',
+          ),
           TabItem(icon: Icons.arrow_forward, title: 'Next'),
         ],
         initialActiveIndex: 1,
