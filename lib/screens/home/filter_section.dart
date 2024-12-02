@@ -132,7 +132,7 @@ class FilterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Search bar
+        // Barra de busqueda
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: TextField(
@@ -161,7 +161,7 @@ class FilterSection extends StatelessWidget {
           ),
         ),
 
-        // Filter buttons and active filters
+        // Botones de filtro y cantidad de filtros activos
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(

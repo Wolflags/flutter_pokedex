@@ -6,7 +6,7 @@ import '/services/favorites_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final favoritesService = FavoritesService();
-  await favoritesService.loadFavorites(); // Initialize favorites
+  await favoritesService.loadFavorites();
   runApp(
     ChangeNotifierProvider(
       create: (_) => favoritesService,

@@ -1,4 +1,3 @@
-// ignore: file_names
 import 'package:flutter/material.dart';
 import 'package:flutter_pokedex/screens/home/buildTypes.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -24,7 +23,7 @@ class HomePageState extends State<HomePage> {
   bool _hasNextPage = true;
   bool _isFetching = false;
   int _selectedIndex = 0;
-  String _currentSorting = 'id'; // New variable to track sorting
+  String _currentSorting = 'id';
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -371,13 +370,13 @@ class HomePageState extends State<HomePage> {
         backgroundColor: Colors.red,
         children: [
           SpeedDialChild(
-            child: Icon(Icons.tag, color: Colors.white),
+            child: const Icon(Icons.tag, color: Colors.white),
             backgroundColor: Colors.redAccent,
             label: 'Ordenar por Numero',
             onTap: () => _changeSorting('id'),
           ),
           SpeedDialChild(
-            child: Icon(Icons.sort_by_alpha, color: Colors.white),
+            child: const Icon(Icons.sort_by_alpha, color: Colors.white),
             backgroundColor: Colors.redAccent,
             label: 'Ordenar por Nombre',
             onTap: () => _changeSorting('name'),

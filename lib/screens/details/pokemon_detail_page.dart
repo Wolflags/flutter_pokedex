@@ -44,7 +44,6 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
     _isFavorited = FavoritesService().isFavorite(widget.pokemonId);
   }
 
-  // Eliminar el método _initializeCache() ya que no lo necesitamos más
 
   Future<Map<String, dynamic>> _fetchPokemonDetail() async {
     // Intentar obtener datos del caché primero
@@ -193,7 +192,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
       appBar: AppBar(
         title: const Text(
           'Detalles del Pokémon',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 25,
             color: Colors.white,
@@ -211,7 +210,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
           },
         ),
         actions: [IconButton(
-    icon: Icon(Icons.share, color: Colors.white),
+    icon: const Icon(Icons.share, color: Colors.white),
     onPressed: _sharePokemonDetails,
   ),
           if (_isOffline)
@@ -933,7 +932,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                                                                             FontWeight.bold,
                                                                       ),
                                                                     )
-                                                                  : Icon(
+                                                                  : const Icon(
                                                                       Icons
                                                                           .auto_awesome,
                                                                       color: Colors
@@ -1012,7 +1011,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 36),
+                      const SizedBox(height: 36),
                     ],
                   ),
                 );
@@ -1025,7 +1024,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
         style: TabStyle.reactCircle,
         backgroundColor: Colors.red,
         items: [
-          TabItem(icon: Icons.arrow_back, title: 'Previous'),
+          const TabItem(icon: Icons.arrow_back, title: 'Previous'),
           TabItem(
             icon: GestureDetector(
               onTap: _toggleFavorite,
@@ -1037,7 +1036,7 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
             ),
             title: 'Favorite',
           ),
-          TabItem(icon: Icons.arrow_forward, title: 'Next'),
+          const TabItem(icon: Icons.arrow_forward, title: 'Next'),
         ],
         initialActiveIndex: 1,
         onTap: (int index) {
