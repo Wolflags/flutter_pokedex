@@ -1,4 +1,6 @@
-class FavoritesService {
+import 'package:flutter/foundation.dart';
+
+class FavoritesService extends ChangeNotifier {
   static final FavoritesService _instance = FavoritesService._internal();
   factory FavoritesService() => _instance;
   FavoritesService._internal();
@@ -8,11 +10,14 @@ class FavoritesService {
   void addFavorite(int id) {
     if (!favoritePokemonIds.contains(id)) {
       favoritePokemonIds.add(id);
+      notifyListeners();
     }
   }
 
   void removeFavorite(int id) {
-    favoritePokemonIds.remove(id);
+    if (favoritePokemonIds.remove(id)) {
+      notifyListeners();
+    }
   }
 
   bool isFavorite(int id) {
