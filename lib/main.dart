@@ -1,13 +1,15 @@
-// main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_pokedex/screens/home/home_page.dart';
 import '/services/favorites_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final favoritesService = FavoritesService();
+  await favoritesService.loadFavorites(); // Initialize favorites
   runApp(
     ChangeNotifierProvider(
-      create: (_) => FavoritesService(),
+      create: (_) => favoritesService,
       child: const MainApp(),
     ),
   );

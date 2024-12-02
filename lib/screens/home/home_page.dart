@@ -214,20 +214,22 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Pokedéx',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 30,
-            color: Colors.white,
-            fontFamily: 'PokemonSolid',
-            letterSpacing: 3.0,
-          ),
-        ),
-        backgroundColor: Colors.red,
-        centerTitle: true,
-      ),
+      appBar: _selectedIndex == 0
+          ? AppBar(
+              title: const Text(
+                'Pokedéx',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 30,
+                  color: Colors.white,
+                  fontFamily: 'PokemonSolid',
+                  letterSpacing: 3.0,
+                ),
+              ),
+              backgroundColor: Colors.red,
+              centerTitle: true,
+            )
+          : null,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
