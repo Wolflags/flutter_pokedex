@@ -261,15 +261,12 @@ class PokemonDetailPageState extends State<PokemonDetailPage> {
                           color: Colors.white,
                           child: Column(
                           children: [
-                            Hero(
-              tag: 'pokemon-image-$id',
-              child: Image.network(
+                            Image.network(
                 imageUrl,
                 height: 200,
                 width: 200,
                 fit: BoxFit.cover,
               ),
-            ),
                             const SizedBox(height: 16),
                             Text(
                               '${name[0].toUpperCase()}${name.substring(1)}',

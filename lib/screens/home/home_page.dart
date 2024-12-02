@@ -291,9 +291,7 @@ class HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: Hero(
-                                  tag: 'pokemon-image-$id',
-                                  child: Container(
+                                child: Container(
                                     decoration: BoxDecoration(
                                       borderRadius: const BorderRadius.vertical(
                                           top: Radius.circular(10)),
@@ -303,7 +301,6 @@ class HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                   ),
-                                ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),

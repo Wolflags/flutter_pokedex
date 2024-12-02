@@ -179,9 +179,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
-                                    child: Hero(
-                                      tag: 'pokemon-image-$id',
-                                      child: Container(
+                                    child: Container(
                                         decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.vertical(
                                               top: Radius.circular(10)),
@@ -191,7 +189,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
                                           ),
                                         ),
                                       ),
-                                    ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
